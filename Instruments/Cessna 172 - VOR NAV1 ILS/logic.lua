@@ -201,6 +201,8 @@ dial_obs = dial_add("obsknob.png", 31, 395, 85, 85, 5, new_obs)
 dial_click_rotate(dial_obs, 6)
 
 hw_dial_add("OBS dial", "TYPE_1_DETENT_PER_PULSE", 1, 4, new_obs)
+hw_button_add("OBS dial precision", change_obs_precision_pressed, change_obs_precision_released)
+
 ---------------------------------------------
 --   Simulator Subscriptions               --
 ---------------------------------------------
