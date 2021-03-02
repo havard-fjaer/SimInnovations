@@ -5,6 +5,9 @@
 -- Property for background off/on          --
 -- Property for dimming overlay            --
 -- some gauge initialization fixes         --
+--                                         --
+-- Additional modification by Håvard Fjær, --
+-- adding internal tracking of OBS state   --
 ---------------------------------------------
 
 ---------------------------------------------
@@ -18,8 +21,18 @@ prop_DO = user_prop_add_boolean("Dimming Overlay",false,"Enable dimming overlay?
 --   Loaded images selectable with prop    --
 ---------------------------------------------
 
-obs_deg = 0
+-- Variables for tracking of OBS state
+OBS_PRECISION_HIGH = 1
+OBS_PRECISION_LOW = 10
+obs_precision = OBS_PRECISION_LOW -- Starting precision
+obs_deg_internal = -1 -- Internal state
+obs_deg_reported = -1 -- State reported from simulator
+obs_should_receive_sim_updates = true -- Controls if the sim may update our internal state (is set by encoder events and a timer)
+obs_should_receive_sim_updates_again_after = 1000 -- Wait a second before listening to sim again.
+obs_sim_update_timer = nil -- Tracks timer controlling when we start to listen to the sim again.
 
+-- Debug state
+DEBUG = true
 
 img_to = img_add_fullscreen("OBSnavto.png")
 img_fr = img_add_fullscreen("OBSnavfr.png")
@@ -54,33 +67,86 @@ visible(img_gsflag, true)
 --   Functions                             --
 ---------------------------------------------
 
+function debug_print(message)
+    if DEBUG then 
+        print(message)
+    end
+end
+
 -- BUTTON, SWITCH AND DIAL FUNCTIONS --
 function new_obs(obs)
+    
+    -- Disable updates from sim when interacting with encoder.
+    obs_should_receive_sim_updates = false 
+    if obs_sim_update_timer ~= nil then
+        debug_print("Stopping old timer")
+        timer_stop(obs_sim_update_timer) -- stop timer before creating a new one
+    end 
+    debug_print("Starting new timer")
+    obs_sim_update_timer = timer_start(obs_should_receive_sim_updates_again_after, enable_updates_from_sim)
 
     if obs == 1 then
-        xpl_command("sim/radios/obs1_down")
-        fsx_event("VOR1_OBI_DEC")
+        --xpl_command("sim/radios/obs1_down")
+        --fsx_event("VOR1_OBI_DEC")
         --fs2020_event("VOR1_OBI_DEC")
-        obs_deg = obs_deg -5
-        fs2020_event("VOR1_SET", obs_deg)
-        print("dec");
+        obs_deg_internal = obs_deg_internal - obs_precision
+        debug_print("Dec " ..  obs_precision);
     elseif obs == -1 then
-        xpl_command("sim/radios/obs1_up")
-        fsx_event("VOR1_OBI_INC")
-        -- fs2020_event("VOR1_OBI_INC")
-        
-        -- NAV_OBS_1
-        obs_deg = obs_deg +5
-        fs2020_event("VOR1_SET", obs_deg)
-        print("inc");
+        --xpl_command("sim/radios/obs1_up")
+        --fsx_event("VOR1_OBI_INC")
+        --fs2020_event("VOR1_OBI_INC")
+        obs_deg_internal = obs_deg_internal + obs_precision
+        debug_print("Inc " ..  obs_precision);
     end
+
+    -- Handle northbound edge cases
+    if obs_deg_internal >= 360 then
+        obs_transferded_deg = obs_deg_internal % obs_precision
+        debug_print("Went past 360 degrees, transfering to " .. obs_transferded_deg)
+        obs_deg_internal = obs_transferded_deg
+    end
+    
+    if obs_deg_internal < 0 then
+        obs_transferded_deg = 360 + obs_deg_internal
+        debug_print("Went down past 0 degrees, transfering to " .. obs_transferded_deg)
+        obs_deg_internal = obs_transferded_deg
+    end
+    
+    debug_print("OBS degrees: " ..  obs_deg_internal)
+    fs2020_event("VOR1_SET", obs_deg_internal)
+    rotate(img_compring, obs_deg_internal * -1)
 
 end
 
+function change_obs_precision_pressed(obs_button)
+    debug_print("OBS pressed")
+    if obs_precision == OBS_PRECISION_LOW then
+        obs_precision = OBS_PRECISION_HIGH
+    else
+        obs_precision = OBS_PRECISION_LOW
+    end
+end
+
+function change_obs_precision_released(obs_button)
+    debug_print("OBS released")
+end
+
+function enable_updates_from_sim()
+    debug_print("Enabling updates from sim")
+    obs_sim_update_timer = nil
+    obs_should_receive_sim_updates = true
+    if obs_deg_reported ~= obs_deg_internal then -- If there has been any external change while we have been waiting, ensure we are up-to-date
+        debug_print("... and updating reported obs heading from sim")
+        new_obsheading(obs_deg_reported)
+    end
+end
+
 function new_obsheading(obs)
-    --obs_deg = obs
-    rotate(img_compring, obs * -1)
-    
+    obs_deg_reported = obs
+    if obs_should_receive_sim_updates then
+        obs_deg_internal = obs_deg_reported
+        rotate(img_compring, obs_deg_internal * -1)
+    end 
 end
 
 
@@ -144,8 +210,7 @@ dial_click_rotate(dial_obs, 6)
 
 
 hw_dial_add("OBS dial", "TYPE_1_DETENT_PER_PULSE", 1, 4, new_obs)
-
-
+hw_button_add("OBS dial precision", change_obs_precision_pressed, change_obs_precision_released)
 
 
 

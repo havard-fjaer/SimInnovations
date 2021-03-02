@@ -1,5 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?><pluginstrument><aircraft>Cessna 172</aircraft><type>VOR NAV1/ILS</type><uuid>94a0e896-e8f8-48b4-997d-0858cb647abe</uuid><author>Jason Tatum</author><description>Modification by Brian McMullan
+<?xml version="1.0" encoding="utf-8"?><pluginstrument><aircraft>Cessna 172</aircraft><type>VOR NAV1/ILS</type><uuid>4b35e32c-bd3d-46b3-a94f-3e96345429fe</uuid><author>Jason Tatum</author><description>Modification by Brian McMullan
+Modification #2 by Håvard Fjær
 
 Property for background off/on (default ON)
 
-Property for dimming overlay (default OFF)</description><compatibleFSX>true</compatibleFSX><compatibleP3D>true</compatibleP3D><compatibleXPL>true</compatibleXPL><compatibleFS2>false</compatibleFS2><compatibleFS2020>true</compatibleFS2020><version>110</version><configVersion>1</configVersion><pluginInterfaceVersion>100</pluginInterfaceVersion><prefWidth>512</prefWidth><prefHeight>512</prefHeight><source>ONLINE</source><platforms><platform>WINDOWS</platform><platform>MAC</platform><platform>LINUX</platform><platform>RASPBERRY_PI</platform><platform>ANDROID</platform><platform>IPAD</platform><platform>ESP32</platform></platforms><tiers><tier>HOME_USE_STANDARD</tier></tiers></pluginstrument>
+Property for dimming overlay (default OFF)
+
+Internal tracking of OBS state</description><compatibleFSX>false</compatibleFSX><compatibleP3D>false</compatibleP3D><compatibleXPL>false</compatibleXPL><compatibleFS2>false</compatibleFS2><compatibleFS2020>true</compatibleFS2020><version>120</version><configVersion>1</configVersion><pluginInterfaceVersion>100</pluginInterfaceVersion><prefWidth>512</prefWidth><prefHeight>512</prefHeight><source>PERSONAL</source><platforms><platform>WINDOWS</platform><platform>MAC</platform><platform>LINUX</platform><platform>RASPBERRY_PI</platform><platform>ANDROID</platform><platform>IPAD</platform><platform>ESP32</platform></platforms><tiers><tier>HOME_USE_STANDARD</tier></tiers></pluginstrument>
